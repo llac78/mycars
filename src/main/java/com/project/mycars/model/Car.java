@@ -1,4 +1,4 @@
-package com.project.mycars.model.entity;
+package com.project.mycars.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
