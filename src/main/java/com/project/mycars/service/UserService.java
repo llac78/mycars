@@ -2,6 +2,8 @@ package com.project.mycars.service;
 
 import com.project.mycars.model.User;
 import com.project.mycars.repository.UserRepository;
+import org.apache.catalina.util.StringUtil;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,8 +30,12 @@ public class UserService {
 
     public User save(User userDetails) {
 
-        validateEmailFormat(userDetails);
-        validateEmailExists(userDetails);
+        validateWhitespaceTextField(userDetails);
+        validateEmailFormat(userDetails.getEmail());
+        validateEmailExists(userDetails.getEmail());
+        validateLoginExists(userDetails.getLogin());
+
+
 
         return userRepository.save(userDetails);
     }
@@ -55,16 +61,32 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    private void validateEmailExists(User userDetails) {
-        if (userRepository.existsByEmail(userDetails.getEmail())) {
+    private void validateWhitespaceTextField(User userDetails) {
+        if (userDetails.getFirstName().trim().contains(" ") || userDetails.getLastName().trim().contains(" ")
+            || userDetails.getEmail().trim().contains(" ") || userDetails.getLogin().trim().contains(" ")){
+            String message = messageSource.getMessage("fields.invalid", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, message);
+        }
+    }
+
+
+    private void validateEmailExists(String email) {
+        if (userRepository.existsByEmail(email)) {
             String message = messageSource.getMessage("user.field.email.exists", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }
     }
 
-    private void validateEmailFormat(User userDetails) {
-        if (!userDetails.getEmail().matches("^[\\w-.]+@[\\w-]+\\.com$")) {
+    private void validateEmailFormat(String email) {
+        if (!email.matches("^[\\w-.]+@[\\w-]+\\.com$")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, messageSource.getMessage("fields.invalid", null, Locale.getDefault()));
+        }
+    }
+
+    private void validateLoginExists(String login) {
+        if (userRepository.existsByLogin(login)){
+            String message = messageSource.getMessage("user.field.login.exists", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }
     }
 }
