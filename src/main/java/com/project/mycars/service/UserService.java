@@ -40,8 +40,6 @@ public class UserService {
 
         userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
 
-
-
         return userRepository.save(userDetails);
     }
 
@@ -56,12 +54,21 @@ public class UserService {
         }
         User user = userBD.get();
 
-        if(userDetails.getFirstName() == null && userDetails.getLastName() == null && userDetails.getEmail() == null){
+        if(userDetails.getFirstName() == null && userDetails.getLastName() == null && userDetails.getEmail() == null
+            && userDetails.getBirthday() == null && userDetails.getPassword() == null && userDetails.getPhone() == null){
             String message = messageSource.getMessage("fields.missing", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
+        validateWhitespaceTextField(userDetails);
+
         user.setFirstName(userDetails.getFirstName());
         user.setLastName(userDetails.getLastName());
+
+        user.setBirthday(userDetails.getBirthday());
+
+        userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        user.setPassword(userDetails.getPassword());
+        user.setPhone(userDetails.getPhone());
 
         return userRepository.save(user);
     }
