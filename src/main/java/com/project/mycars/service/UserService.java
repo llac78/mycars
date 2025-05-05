@@ -6,6 +6,7 @@ import org.apache.catalina.util.StringUtil;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,10 +19,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final MessageSource messageSource;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository,  MessageSource messageSource) {
+    public UserService(UserRepository userRepository, MessageSource messageSource, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.messageSource = messageSource;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<User> getUsers() {
@@ -34,6 +37,8 @@ public class UserService {
         validateEmailFormat(userDetails.getEmail());
         validateEmailExists(userDetails.getEmail());
         validateLoginExists(userDetails.getLogin());
+
+        userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
 
 
 
@@ -63,7 +68,8 @@ public class UserService {
 
     private void validateWhitespaceTextField(User userDetails) {
         if (userDetails.getFirstName().trim().contains(" ") || userDetails.getLastName().trim().contains(" ")
-            || userDetails.getEmail().trim().contains(" ") || userDetails.getLogin().trim().contains(" ")){
+            || userDetails.getEmail().trim().contains(" ") || userDetails.getLogin().trim().contains(" ")
+            || userDetails.getPassword().trim().contains(" ") || userDetails.getPhone().trim().contains(" ")){
             String message = messageSource.getMessage("fields.invalid", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }

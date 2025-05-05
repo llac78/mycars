@@ -31,4 +31,8 @@ public class Car {
     @Column(nullable = false)
     @NotNull(message = "{car.field.color.mandatory}")
     private String colorCar;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }
