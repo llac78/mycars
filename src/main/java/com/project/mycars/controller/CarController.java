@@ -1,8 +1,11 @@
 package com.project.mycars.controller;
 
 import com.project.mycars.dto.ApiResponse;
+import com.project.mycars.dto.CarDTO;
 import com.project.mycars.model.Car;
+import com.project.mycars.model.User;
 import com.project.mycars.repository.CarRepository;
+import com.project.mycars.service.CarService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -19,11 +22,12 @@ import java.util.Optional;
 @RequestMapping("/api/cars")
 public class CarController {
 
+    private final CarService carService;
     private final CarRepository carRepository;
     private final MessageSource messageSource;
 
-    @Autowired
-    public CarController(CarRepository carRepository, MessageSource messageSource) {
+    public CarController(CarService carService, CarRepository carRepository, MessageSource messageSource) {
+        this.carService = carService;
         this.carRepository = carRepository;
         this.messageSource = messageSource;
     }
@@ -35,13 +39,18 @@ public class CarController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Car saveCar(@RequestBody @Valid Car car){
+    public ResponseEntity<?> saveCar(@RequestBody @Valid CarDTO carDetails){
 
-        if(car.getColorCar() == null && car.getYearCar() == null && car.getModelCar() == null && car.getLicensePlate() == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Validation error occurred");
-        }
-        return this.carRepository.save(car);
+        Car car = this.carService.save(carDetails);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(car) ;
     }
+
+//    @GetMapping
+//    public ResponseEntity<List<Car>> getCarsByLoggedUser(@AuthenticationPrincipal User loggedUser) {
+//        List<Car> cars = carRepository.findByUser(loggedUser);
+//        return ResponseEntity.ok(cars);
+//    }
 
     @GetMapping("{id}")
     public Car getCarById(@PathVariable Integer id){
@@ -74,10 +83,10 @@ public class CarController {
         if(carRepository.existsByLicensePlate(carDetails.getLicensePlate()) && car.getLicensePlate().equals(carDetails.getLicensePlate())){
             throw new ResponseStatusException(HttpStatus.CONFLICT, "License Plate is already exists.");
         }
-        car.setYearCar(carDetails.getYearCar());
+        car.setYear(carDetails.getYear());
         car.setLicensePlate(carDetails.getLicensePlate());
-        car.setModelCar(carDetails.getModelCar());
-        car.setColorCar(carDetails.getColorCar());
+        car.setModel(carDetails.getModel());
+        car.setColor(carDetails.getColor());
 
         return carRepository.save(car);
     }

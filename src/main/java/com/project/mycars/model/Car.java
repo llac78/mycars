@@ -1,12 +1,13 @@
 package com.project.mycars.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.project.mycars.validation.ValidName;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
-import org.springframework.lang.NonNull;
 
 @Entity
+@Table(name = "car")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,23 +17,24 @@ public class Car {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
-    @NotNull (message = "{car.field.year.mandatory}") // @NotEmpty = nem null nem vazio
-    private Integer yearCar;
+    @Column(name = "\"year\"", nullable = false)
+    @NotNull (message = "{fields.missing}")
+    private Integer year;
 
     @Column(nullable = false, length = 8)
-    @NotNull(message = "{car.field.licenseplate.mandatory}")
     private String licensePlate;
 
     @Column(nullable = false)
-    @NotNull(message = "{car.field.model.mandatory}")
-    private String modelCar;
+    @NotBlank(message = "{fields.missing}")
+    private String model;
 
     @Column(nullable = false)
-    @NotNull(message = "{car.field.color.mandatory}")
-    private String colorCar;
+    @NotBlank(message = "{fields.missing}")
+    @ValidName
+    private String color;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 }

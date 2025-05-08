@@ -2,8 +2,6 @@ package com.project.mycars.service;
 
 import com.project.mycars.model.User;
 import com.project.mycars.repository.UserRepository;
-import org.apache.catalina.util.StringUtil;
-import org.apache.tomcat.util.buf.StringUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,21 +47,15 @@ public class UserService {
 
         if (userBD.isEmpty()) {
             String message = messageSource.getMessage("user.not.found", null, Locale.getDefault());
-
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
         }
         User user = userBD.get();
 
-        if(userDetails.getFirstName() == null && userDetails.getLastName() == null && userDetails.getEmail() == null
-            && userDetails.getBirthday() == null && userDetails.getPassword() == null && userDetails.getPhone() == null){
-            String message = messageSource.getMessage("fields.missing", null, Locale.getDefault());
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
-        }
+        validateMissingFields(userDetails);
         validateWhitespaceTextField(userDetails);
 
         user.setFirstName(userDetails.getFirstName());
         user.setLastName(userDetails.getLastName());
-
         user.setBirthday(userDetails.getBirthday());
 
         userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
@@ -71,6 +63,14 @@ public class UserService {
         user.setPhone(userDetails.getPhone());
 
         return userRepository.save(user);
+    }
+
+    private void validateMissingFields(User userDetails) {
+        if(userDetails.getFirstName() == null && userDetails.getLastName() == null && userDetails.getEmail() == null
+            && userDetails.getBirthday() == null && userDetails.getPassword() == null && userDetails.getPhone() == null){
+            String message = messageSource.getMessage("fields.missing", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
     }
 
     private void validateWhitespaceTextField(User userDetails) {
@@ -81,7 +81,6 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }
     }
-
 
     private void validateEmailExists(String email) {
         if (userRepository.existsByEmail(email)) {
