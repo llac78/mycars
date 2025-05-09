@@ -19,13 +19,11 @@ import java.util.Optional;
 @Service
 public class CarService {
 
-    private final Validator validator;
     private final UserRepository userRepository;
     private final CarRepository carRepository;
     private final MessageSource messageSource;
 
-    public CarService(Validator validator, UserRepository userRepository, CarRepository carRepository, MessageSource messageSource) {
-        this.validator = validator;
+    public CarService(UserRepository userRepository, CarRepository carRepository, MessageSource messageSource) {
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.messageSource = messageSource;
@@ -38,10 +36,9 @@ public class CarService {
     public Car save(CarDTO carDetails) {
 
         validateMissingFields(carDetails);
-        validateYearField(carDetails);
+        validateYearField(carDetails.year());
         validateWhitespaceTextField(carDetails);
-
-        validateLicencePlateFormat(carDetails);
+        validateLicencePlateFormat(carDetails.licensePlate());
         validateLicensePlateExists(carDetails.licensePlate());
 
         Optional<User> userBD = userRepository.findById(carDetails.user());
@@ -62,17 +59,16 @@ public class CarService {
         return carRepository.save(car);
     }
 
-    private void validateLicencePlateFormat(CarDTO carDetails) {
-        if (!carDetails.licensePlate().matches("^[A-Z]{3}-\\d{4}$")) {
+    private void validateLicencePlateFormat(String licensePlate) {
+        if (!licensePlate.matches("^[A-Z]{3}-\\d{4}$")) {
             String message = messageSource.getMessage("fields.invalid", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
     }
 
-    private void validateYearField(CarDTO carDetails) {
+    private void validateYearField(Integer year) {
         int currentYear = LocalDate.now().getYear();
-        if (carDetails.year().toString().length() != 4 || carDetails.year() > currentYear
-            || carDetails.year() < 1900){
+        if (year.toString().length() != 4 || year > currentYear || year < 1900){
             String message = messageSource.getMessage("fields.invalid", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
@@ -87,33 +83,29 @@ public class CarService {
         }
     }
 
-//    public Car updateCar(Integer id, Car CarDetails){
-//
-//        Optional<Car> CarBD = CarRepository.findById(id);
-//
-//        if (CarBD.isEmpty()) {
-//            String message = messageSource.getMessage("Car.not.found", null, Locale.getDefault());
-//
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
-//        }
-//        Car Car = CarBD.get();
-//
-//        if(CarDetails.getFirstName() == null && CarDetails.getLastName() == null && CarDetails.getEmail() == null
-//            && CarDetails.getBirthday() == null && CarDetails.getPassword() == null && CarDetails.getPhone() == null){
-//            String message = messageSource.getMessage("fields.missing", null, Locale.getDefault());
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
-//        }
-//        validateWhitespaceTextField(CarDetails);
-//
-//        Car.setFirstName(CarDetails.getFirstName());
-//        Car.setLastName(CarDetails.getLastName());
-//
-//        Car.setBirthday(CarDetails.getBirthday());
-//
-//
-//
-//        return CarRepository.save(Car);
-//    }
+    public Car updateCar(Integer id, CarDTO carDetails){
+
+        validateMissingFields(carDetails);
+        validateWhitespaceTextField(carDetails);
+        validateYearField(carDetails.year());
+        validateLicencePlateFormat(carDetails.licensePlate());
+        validateLicensePlateExists(carDetails.licensePlate());
+
+        Optional<Car> CarBD = carRepository.findById(id);
+
+        if (CarBD.isEmpty()) {
+            String message = messageSource.getMessage("car.not.found", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
+        }
+        Car car = CarBD.get();
+
+        car.setYear(carDetails.year());
+        car.setLicensePlate(carDetails.licensePlate());
+        car.setModel(carDetails.model());
+        car.setColor(carDetails.color());
+
+        return carRepository.save(car);
+    }
 
     private void validateWhitespaceTextField(CarDTO carDetails) {
         if (carDetails.licensePlate().trim().contains(" ") || carDetails.color().trim().contains(" ")){

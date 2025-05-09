@@ -59,7 +59,6 @@ public class CarController {
     }
 
     @DeleteMapping("{id}")
-//    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<ApiResponse> deleteCar(@PathVariable Integer id){
         return carRepository.findById(id)
                 .map(car -> {
@@ -72,22 +71,10 @@ public class CarController {
 
     @PutMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Car updateCar(@PathVariable Integer id, @RequestBody Car carDetails){
-        Optional<Car> carDB = carRepository.findById(id);
+    public ResponseEntity<?> updateCar(@PathVariable Integer id, @RequestBody CarDTO carDetails){
 
-        if (carDB.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Car not found. Try again later.");
-        }
-        Car car = carDB.get();
+        Car car = carService.updateCar(id, carDetails);
 
-        if(carRepository.existsByLicensePlate(carDetails.getLicensePlate()) && car.getLicensePlate().equals(carDetails.getLicensePlate())){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "License Plate is already exists.");
-        }
-        car.setYear(carDetails.getYear());
-        car.setLicensePlate(carDetails.getLicensePlate());
-        car.setModel(carDetails.getModel());
-        car.setColor(carDetails.getColor());
-
-        return carRepository.save(car);
+        return ResponseEntity.status(HttpStatus.OK).body(car);
     }
 }
