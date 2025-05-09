@@ -1,5 +1,6 @@
 package com.project.mycars.service;
 
+import com.project.mycars.dto.ApiResponse;
 import com.project.mycars.model.User;
 import com.project.mycars.repository.UserRepository;
 import org.springframework.context.MessageSource;
@@ -39,6 +40,28 @@ public class UserService {
         userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
 
         return userRepository.save(userDetails);
+    }
+
+    public User getUserById(Integer id) {
+        Optional<User> userBD = userRepository.findById(id);
+        if (userBD.isEmpty()) {
+            String message = messageSource.getMessage("user.not.found", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
+        }
+        return userBD.get();
+    }
+
+    public ApiResponse deleteUser(Integer id){
+
+        Optional<User> userBD = userRepository.findById(id);
+        if (userBD.isEmpty()) {
+            String message = messageSource.getMessage("user.not.found", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
+        }
+        userRepository.delete(userBD.get());
+        String message = messageSource.getMessage("user.deleted.success", null, Locale.getDefault());
+
+        return new ApiResponse(message);
     }
 
     public User updateUser(Integer id, User userDetails){

@@ -46,11 +46,13 @@ public class User {
 
     @Column(nullable = false)
     @NotBlank(message = "{fields.missing}")
+    @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "{fields.invalid}") // allow special characters like - _ .
     private String login;
 
-
+    // This field does not accept accented characters
     @Column(nullable = false)
     @NotBlank(message = "{fields.missing}")
+    @Pattern(regexp = "^[a-zA-Z0-9@#$%^&+=*!?-_]+$", message = "{fields.invalid}") //
     private String password;
 
     @Column(nullable = false)
