@@ -1,13 +1,18 @@
 package com.project.mycars.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.mycars.validation.ValidName;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,13 +51,11 @@ public class User {
 
     @Column(nullable = false)
     @NotBlank(message = "{fields.missing}")
-    @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "{fields.invalid}") // allow special characters like - _ .
+    @Pattern(regexp = "^[a-zA-Z0-9._-]+$", message = "{fields.invalid}")
     private String login;
 
-    // This field does not accept accented characters
     @Column(nullable = false)
     @NotBlank(message = "{fields.missing}")
-    @Pattern(regexp = "^[a-zA-Z0-9@#$%^&+=*!?-_]+$", message = "{fields.invalid}") //
     private String password;
 
     @Column(nullable = false)
@@ -62,5 +65,17 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Car> cars = new ArrayList<>();
+
+    @Column(nullable = false, updatable = false)
+    @JsonIgnore
+    private LocalDateTime createdAt;
+
+    @JsonIgnore
+    private LocalDateTime lastLogin;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
 }

@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -36,6 +37,7 @@ public class UserService {
         validateEmailFormat(userDetails.getEmail());
         validateEmailExists(userDetails.getEmail());
         validateLoginExists(userDetails.getLogin());
+        validatePassword(userDetails.getPassword());
 
         userDetails.setPassword(passwordEncoder.encode(userDetails.getPassword()));
 
@@ -76,6 +78,7 @@ public class UserService {
 
         validateMissingFields(userDetails);
         validateWhitespaceTextField(userDetails);
+        validatePassword(userDetails.getPassword());
 
         user.setFirstName(userDetails.getFirstName());
         user.setLastName(userDetails.getLastName());
@@ -122,6 +125,12 @@ public class UserService {
         if (userRepository.existsByLogin(login)){
             String message = messageSource.getMessage("user.field.login.exists", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.CONFLICT, message);
+        }
+    }
+
+    private void validatePassword(String password) {
+        if (!password.matches("^[a-zA-Z0-9@#$%^&+=*!?-_]+$")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, messageSource.getMessage("fields.invalid", null, Locale.getDefault()));
         }
     }
 }
