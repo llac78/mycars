@@ -4,6 +4,6 @@ public record CarDTO(
         Integer year,
         String licensePlate,
         String model,
-        String color,
-        Integer user) {
+        String color
+) {
 }

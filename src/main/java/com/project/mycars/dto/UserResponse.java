@@ -1,7 +1,6 @@
 package com.project.mycars.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.project.mycars.model.Car;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -14,7 +13,7 @@ public record UserResponse(
         Date birthday,
         String phone,
         String login,
-        List<Car> cars,
+        List<CarDTO> cars,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
         LocalDateTime createdAt,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")

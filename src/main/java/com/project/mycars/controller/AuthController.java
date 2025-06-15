@@ -2,6 +2,7 @@ package com.project.mycars.controller;
 
 import com.project.mycars.dto.AuthRequest;
 import com.project.mycars.dto.AuthResponse;
+import com.project.mycars.dto.CarDTO;
 import com.project.mycars.dto.UserResponse;
 import com.project.mycars.model.User;
 import com.project.mycars.repository.UserRepository;
@@ -15,11 +16,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -72,15 +73,24 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getUserInfo(@AuthenticationPrincipal User userDetails) {
 
-        // TODO testar CRUD de cars
-        Optional<User> userBD = userRepository.findByLogin(userDetails.getUsername());
+        Optional<User> userBD = userRepository.findByLogin(userDetails.getLogin());
         if (userBD.isEmpty()) {
             String message = messageSource.getMessage("user.not.found", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
         }
         User user = userBD.get();
+
+        List<CarDTO> carDtos = user.getCars().stream()
+                .map(car -> new CarDTO(
+                        car.getYear(),
+                        car.getLicensePlate(),
+                        car.getModel(),
+                        car.getColor()
+                ))
+                .toList();
+
         return ResponseEntity.ok(new UserResponse(
                 user.getFirstName(),
                 user.getLastName(),
@@ -88,7 +98,7 @@ public class AuthController {
                 user.getBirthday(),
                 user.getLogin(),
                 user.getPhone(),
-                user.getCars(),
+                carDtos,
                 user.getCreatedAt(),
                 user.getLastLogin()
         ));

@@ -2,10 +2,8 @@ package com.project.mycars.controller;
 
 import com.project.mycars.dto.ApiResponse;
 import com.project.mycars.model.User;
-import com.project.mycars.repository.UserRepository;
 import com.project.mycars.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

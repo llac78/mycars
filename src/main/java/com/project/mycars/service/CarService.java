@@ -5,7 +5,8 @@ import com.project.mycars.model.Car;
 import com.project.mycars.model.User;
 import com.project.mycars.repository.CarRepository;
 import com.project.mycars.repository.UserRepository;
-import jakarta.validation.Validator;
+import com.project.mycars.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,21 +20,23 @@ import java.util.Optional;
 @Service
 public class CarService {
 
+    private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final CarRepository carRepository;
     private final MessageSource messageSource;
 
-    public CarService(UserRepository userRepository, CarRepository carRepository, MessageSource messageSource) {
+    public CarService(JwtUtil jwtUtil, UserRepository userRepository, CarRepository carRepository, MessageSource messageSource) {
+        this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.carRepository = carRepository;
         this.messageSource = messageSource;
     }
 
-    public List<Car> getCars() {
-        return carRepository.findAll();
+    public List<Car> getCars(Integer userId) {
+        return carRepository.findByUserId(userId);
     }
 
-    public Car save(CarDTO carDetails) {
+    public Car save(CarDTO carDetails, HttpServletRequest request) {
 
         validateMissingFields(carDetails);
         validateYearField(carDetails.year());
@@ -41,10 +44,11 @@ public class CarService {
         validateLicencePlateFormat(carDetails.licensePlate());
         validateLicensePlateExists(carDetails.licensePlate());
 
-        Optional<User> userBD = userRepository.findById(carDetails.user());
+        String username = getLoggedUsername(request);
+
+        Optional<User> userBD = userRepository.findByLogin(username);
         if (userBD.isEmpty()) {
             String message = messageSource.getMessage("user.not.found", null, Locale.getDefault());
-
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
         }
         User user = userBD.get();
@@ -119,5 +123,16 @@ public class CarService {
             String message = messageSource.getMessage("car.field.licenseplate.exists", null, Locale.getDefault());
             throw new ResponseStatusException(HttpStatus.CONFLICT, message);
         }
+    }
+
+    public String getLoggedUsername(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+
+        if (token == null || !token.startsWith("Bearer ")) {
+            String message = messageSource.getMessage("user.token.invalid", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, message);
+        }
+        token = token.substring(7);
+        return jwtUtil.extractUsername(token);
     }
 }

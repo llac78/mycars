@@ -6,17 +6,17 @@ import com.project.mycars.model.Car;
 import com.project.mycars.model.User;
 import com.project.mycars.repository.CarRepository;
 import com.project.mycars.service.CarService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cars")
@@ -33,24 +33,19 @@ public class CarController {
     }
 
     @GetMapping
-    public List<Car> getCars(){
-        return carRepository.findAll();
+    public ResponseEntity<List<Car>> getCars(@AuthenticationPrincipal User loggedUser) {
+        List<Car> cars = carService.getCars(loggedUser.getId());
+        return ResponseEntity.ok(cars);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> saveCar(@RequestBody @Valid CarDTO carDetails){
+    public ResponseEntity<?> saveCar(@RequestBody @Valid CarDTO carDetails, HttpServletRequest request){
 
-        Car car = this.carService.save(carDetails);
+        Car car = this.carService.save(carDetails, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(car) ;
     }
-
-//    @GetMapping
-//    public ResponseEntity<List<Car>> getCarsByLoggedUser(@AuthenticationPrincipal User loggedUser) {
-//        List<Car> cars = carRepository.findByUser(loggedUser);
-//        return ResponseEntity.ok(cars);
-//    }
 
     @GetMapping("{id}")
     public Car getCarById(@PathVariable Integer id){

@@ -63,7 +63,7 @@ public class User {
     @Pattern(regexp = "\\d{9}", message = "{fields.invalid}")
     private String phone;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Car> cars = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
