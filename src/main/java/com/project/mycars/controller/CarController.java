@@ -55,13 +55,9 @@ public class CarController {
 
     @DeleteMapping("{id}")
     public ResponseEntity<ApiResponse> deleteCar(@PathVariable Integer id){
-        return carRepository.findById(id)
-                .map(car -> {
-                    carRepository.delete(car);
-                    String message = messageSource.getMessage("car.deleted.success", null, Locale.getDefault());
-                    return ResponseEntity.ok(new ApiResponse(message));
-                })
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Car not found. Try again later."));
+        ApiResponse response = this.carService.deleteCar(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PutMapping("{id}")

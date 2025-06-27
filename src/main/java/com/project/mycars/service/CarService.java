@@ -1,5 +1,6 @@
 package com.project.mycars.service;
 
+import com.project.mycars.dto.ApiResponse;
 import com.project.mycars.dto.CarDTO;
 import com.project.mycars.model.Car;
 import com.project.mycars.model.User;
@@ -135,4 +136,26 @@ public class CarService {
         token = token.substring(7);
         return jwtUtil.extractUsername(token);
     }
+
+    public ApiResponse deleteCar(Integer id){
+
+        Optional<Car> carBD = carRepository.findById(id);
+        if (carBD.isEmpty()) {
+            String message = messageSource.getMessage("car.not.found", null, Locale.getDefault());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, message);
+        }
+        Car car = carBD.get();
+        User user = car.getUser();
+
+        if (user != null){
+            user.getCars().remove(car);
+            car.setUser(null);
+        }
+
+        carRepository.delete(carBD.get());
+        String message = messageSource.getMessage("car.deleted.success", null, Locale.getDefault());
+
+        return new ApiResponse(message);
+    }
+
 }

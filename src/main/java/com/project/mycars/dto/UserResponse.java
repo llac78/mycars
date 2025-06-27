@@ -7,12 +7,12 @@ import java.util.Date;
 import java.util.List;
 
 public record UserResponse(
-        String token,
         String firstName,
         String lastName,
+        String email,
         Date birthday,
-        String phone,
         String login,
+        String phone,
         List<CarDTO> cars,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy HH:mm:ss")
         LocalDateTime createdAt,
